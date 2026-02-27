@@ -19,7 +19,7 @@ This project is a smart display and media controller built around an ESP32-P4. I
 2. **`main.py` (FastAPI Backend)**: Aggregates data from rge various web APIs, formats it, and serves it to the ESP32 over a REST API.
 3. **`main.ino` (ESP32 Firmware)**: The C++ code running on the microcontroller. It drives the ST7796 LCD, handles I2C encoder readings, controls the BLDC motor, and renders the user interface.
 4. **`mainHost.py` (PC Volume Listener)**: A lightweight Python script running in the background of your PC to receive UDP volume commands and simulate media keystrokes.
-5. **`/CAD` (Housing)**: CAD and STLs for display housing. Designed by [@SathyaKotari](https://github.com/SathyaKotari)
+5. **`/CAD` (Housing)**: SolidWorks files and STLs for display housing. Designed by [@SathyaKotari](https://github.com/SathyaKotari)
 
 ## Hardware Requirements
 * **Microcontroller**: ESP32-P4-WIFI6.
