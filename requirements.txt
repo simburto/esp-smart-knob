@@ -1,0 +1,11 @@
+fastapi
+pydantic
+spotipy
+requests
+httpx
+Pillow
+google-auth
+google-api-python-client
+Flask
+Werkzeug
+google-auth-oauthlib
