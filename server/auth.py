@@ -1,14 +1,13 @@
 import os
 import json
 import requests
-from flask import Flask, request, redirect, session, url_for, render_template_string
-from google_auth_oauthlib.flow import Flow
+from flask import Flask, request, redirect, url_for, render_template_string
 from spotipy import SpotifyOAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-app.secret_key = "SECRET-KEY" 
+app.secret_key = "SECRET-KEY"
 
 # ==========================================
 # CONFIGURATION
@@ -20,17 +19,12 @@ BASE_URL = f"BASE_URL"
 
 # File Paths
 SPOTIFY_CACHE = ".cache"
-GOOGLE_CREDS = "credentials.json"
-GOOGLE_TOKEN = "token.json"
 OPENSKY_FILE = "opensky_creds.json"
 
 # Spotify Config
 SPOTIPY_CLIENT_ID = "SPOTIFY ID"
 SPOTIPY_CLIENT_SECRET = "SPOTIFY SECRET"
 SPOTIFY_SCOPE = "user-modify-playback-state user-read-playback-state user-read-currently-playing app-remote-control streaming playlist-read-private playlist-read-collaborative user-read-private"
-
-# Google Config
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 HOME_TEMPLATE = """
 <!DOCTYPE html>
@@ -54,7 +48,7 @@ HOME_TEMPLATE = """
 
     <div class="card">
         <h2>1. Spotify</h2>
-        <p>Status: <span class="status {{ 'success' if spotify_ok else 'missing' }}">{{ 'âœ… Connected' if spotify_ok else 'âŒ Not Connected' }}</span></p>
+        <p>Status: <span class="status {{ 'success' if spotify_ok else 'missing' }}">{{ '✅ Connected' if spotify_ok else '❌ Not Connected' }}</span></p>
         {% if not spotify_ok %}
             <a href="/auth/spotify"><button>Connect Spotify</button></a>
         {% else %}
@@ -64,19 +58,8 @@ HOME_TEMPLATE = """
     </div>
 
     <div class="card">
-        <h2>2. Google Calendar</h2>
-        <p>Status: <span class="status {{ 'success' if google_ok else 'missing' }}">{{ 'âœ… Connected' if google_ok else 'âŒ Not Connected' }}</span></p>
-        {% if not google_ok %}
-            <a href="/auth/google"><button>Connect Google</button></a>
-        {% else %}
-            <button disabled>Connected</button>
-            <form action="/reset/google" method="post" style="display:inline;"><button style="background:red; font-size:12px;">Reset</button></form>
-        {% endif %}
-    </div>
-
-    <div class="card">
-        <h2>3. OpenSky Network</h2>
-        <p>Status: <span class="status {{ 'success' if opensky_ok else 'missing' }}">{{ 'âœ… Connected' if opensky_ok else 'âŒ Not Connected' }}</span></p>
+        <h2>2. OpenSky Network</h2>
+        <p>Status: <span class="status {{ 'success' if opensky_ok else 'missing' }}">{{ '✅ Connected' if opensky_ok else '❌ Not Connected' }}</span></p>
         {% if not opensky_ok %}
             <form action="/auth/opensky" method="post">
                 <input type="text" name="client_id" placeholder="Client ID" required><br>
@@ -98,12 +81,10 @@ HOME_TEMPLATE = """
 def index():
     # Check which files exist
     spotify_ok = os.path.exists(SPOTIFY_CACHE)
-    google_ok = os.path.exists(GOOGLE_TOKEN)
     opensky_ok = os.path.exists(OPENSKY_FILE)
 
     return render_template_string(HOME_TEMPLATE,
                                   spotify_ok=spotify_ok,
-                                  google_ok=google_ok,
                                   opensky_ok=opensky_ok)
 
 
@@ -141,45 +122,6 @@ def reset_spotify():
     if os.path.exists(SPOTIFY_CACHE): os.remove(SPOTIFY_CACHE)
     return redirect("/")
 
-@app.route("/auth/google")
-def auth_google():
-    if not os.path.exists(GOOGLE_CREDS):
-        return "Error: credentials.json missing. Upload it to the server folder first."
-
-    flow = Flow.from_client_secrets_file(
-        GOOGLE_CREDS,
-        scopes=GOOGLE_SCOPES,
-        redirect_uri=f"{BASE_URL}/callback/google"
-    )
-
-    auth_url, state = flow.authorization_url(access_type='offline', include_granted_scopes='true', prompt='consent')
-    session['state'] = state
-    return redirect(auth_url)
-
-
-@app.route("/callback/google")
-def callback_google():
-    state = session.get('state')
-    flow = Flow.from_client_secrets_file(
-        GOOGLE_CREDS,
-        scopes=GOOGLE_SCOPES,
-        state=state,
-        redirect_uri=f"{BASE_URL}/callback/google"
-    )
-
-    flow.fetch_token(authorization_response=request.url)
-    creds = flow.credentials
-
-    with open(GOOGLE_TOKEN, 'w') as token:
-        token.write(creds.to_json())
-
-    return redirect("/")
-
-
-@app.route("/reset/google", methods=["POST"])
-def reset_google():
-    if os.path.exists(GOOGLE_TOKEN): os.remove(GOOGLE_TOKEN)
-    return redirect("/")
 
 @app.route("/auth/opensky", methods=["POST"])
 def auth_opensky():
@@ -211,9 +153,7 @@ def reset_opensky():
 if __name__ == "__main__":
     # 0.0.0.0 allows access from other computers on the network
     print(f"--- Starting Auth Server ---")
-    print(f"1. Ensure 'credentials.json' (Google) is in this folder.")
-    print(f"2. Add '{BASE_URL}/callback/spotify' to Spotify Developer Dashboard Redirect URIs.")
-    print(f"3. Add '{BASE_URL}/callback/google' to Google Cloud Console Redirect URIs.")
+    print(f"1. Add '{BASE_URL}/callback/spotify' to Spotify Developer Dashboard Redirect URIs.")
     print(f"----------------------------")
     print(f"OPEN BROWSER TO: {BASE_URL}")
 
