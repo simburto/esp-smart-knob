@@ -2,6 +2,8 @@
 
 This project is a smart display and media controller built around an ESP32-P4. It features a haptic dial, Spotify control, real-time weather, Google Calendar integration, and live overhead flight tracking.
 
+<img width="385" height="308" alt="image" src="https://github.com/user-attachments/assets/9f32f7bc-603e-46c7-8186-9c991b379ed8" /> <img width="385" height="308" alt="image" src="https://github.com/user-attachments/assets/7940c7a6-cfbf-499e-8f28-806d6265f17b" />
+
 ## Features
 
 * **Spotify Controller**: View current playback, control media (play, pause, next, previous, shuffle, repeat), browse playlists, and view your top listening stats.
