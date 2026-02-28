@@ -489,7 +489,7 @@ async def fetch_spotify_data(client, endpoint, start, end, limit=5, extra_params
 
 @app.get("/stats")
 async def get_stats():
-    now = datetime.utcnow() + timedelta(hours=5)
+    now = datetime.utcnow() - timedelta(hours=5)
     dt_month = now.replace(day=1, hour=5, minute=0, second=0, microsecond=0)
     str_now = get_iso_date(now)
     str_month = get_iso_date(dt_month)
@@ -567,3 +567,4 @@ async def get_artist_stats(artist_id: str, api_key: str = Depends(get_api_key)):
     except Exception as e:
         print(f"Artist Stats Connection Error: {e}")
         return default_response
+
