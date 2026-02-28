@@ -41,6 +41,8 @@ CALENDAR_IDS = [
 ]
 GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+ARTIST_CACHE = {}
+ARTIST_CACHE["prev_artist"] = ""
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header == VALID_API_KEY:
@@ -159,7 +161,7 @@ def get_secure_data(api_key: str = Depends(get_api_key)):
         artist_uri = track["artists"][0]["id"]
  
         device_vol = playback.get("device", {}).get("volume_percent", 50)
-
+        
         return {
             "is_active": True,
             "is_playing": playback["is_playing"],
@@ -176,6 +178,12 @@ def get_secure_data(api_key: str = Depends(get_api_key)):
     except Exception as e:
         print(f"Data Error: {e}")
         return {"is_active": False}
+    finally:
+        if artist_uri != ARTIST_CACHE["prev_artist"]:
+            url = f"{YOUR_SPOTIFY_API}/artist/{artist_uri}/stats"
+            results = httpx.get(url, params={"token": YOUR_TOKEN}, timeout = 20).json()
+            ARTIST_CACHE["stats"] = {"count": results.get("total", {}).get("count", 0), "first": results.get("firstLast", {}).get("first", {}).get("played_at")}
+            ARTIST_CACHE["prev_artist"] = artist_uri
 
 @app.get("/spotify/play")
 def play_music(api_key: str = Depends(get_api_key)):
@@ -541,30 +549,6 @@ async def get_stats():
 
 @app.get("/artist/stats")
 async def get_artist_stats(artist_id: str, api_key: str = Depends(get_api_key)):
-    url = f"{YOUR_SPOTIFY_API}/artist/{artist_id}/stats"
-    params = {"token": YOUR_TOKEN}
-    default_response = {"count": 0, "first": None}
-    if not artist_id:
-        return default_response
+    return ARTIST_CACHE.get("stats")
 
-    try:
-        async with httpx.AsyncClient() as client:
-            
-            resp = await client.get(url, params=params, timeout=10.0)
-            if resp.status_code != 200:
-                return default_response
-    
-            results = resp.json()
-            total = results.get("total", {})
-            first_last = results.get("firstLast", {})
-            first = first_last.get("first", {})
-    
-            return {
-                "count": total.get("count", 0),
-                "first": first.get("played_at")
-            }
-
-    except Exception as e:
-        print(f"Artist Stats Connection Error: {e}")
-        return default_response
 
