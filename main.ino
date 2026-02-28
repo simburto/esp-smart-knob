@@ -1315,7 +1315,7 @@ void spotifyTask(void* parameter) {
                 xSemaphoreGive(mutex);
 
                 if (newArtist) {
-                    String aStat = fetchString("/artist/stats?artist_id=" + currentID);
+                    String aStat = fetchString("/artist/stats");
                     if(aStat.length() > 0) {
                         xSemaphoreTake(mutex, portMAX_DELAY);
                         state->artist_stats.clear();
